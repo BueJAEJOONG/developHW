@@ -15,7 +15,7 @@ int main(void)
     {   
 	int value = n*111111; 
         printf("Displaying: %d\n", value);
-        fndDisp(number, 0); 
+        fndDisp(value, 0); 
         sleep(1);
     }
     

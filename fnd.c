@@ -8,13 +8,6 @@
 
 #define FND_DRIVER_NAME "/dev/perifnd"
 
-typedef struct {
-    char DataNumeric[FND_DATA_BUFF_LEN];
-    char DataDot[FND_DATA_BUFF_LEN];
-    char DataValid[FND_DATA_BUFF_LEN];
-} stFndWriteForm;
-
-
 static int fd = -1;
 
 int fndLibInit(void)
