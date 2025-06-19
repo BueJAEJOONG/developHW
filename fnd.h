@@ -1,14 +1,20 @@
-#ifndef __FND_DRV_H__
-#define __FND_DRB_H__
-#define MAX_FND_NUM 6
-#define FND_DATA_BUFF_LEN (MAX_FND_NUM + 2)
-#define MODE_STATIC_DIS 's'
-#define MODE_TIME_DIS 't'
-#define MODE_COUNT_DIS 'c'
+#ifndef _FND_LIB_H_
+#define _FND_LIB_H_
 
-int fnd(int num, char mode);
-int fndDisp(int num , int dotflag);
+#define MAX_FND_NUM         6
+#define FND_DATA_BUFF_LEN   (MAX_FND_NUM + 2)
 
-#endif //FND__DRV_H__
-   
 
+typedef struct FNDWriteDataForm_tag
+{
+   char   DataNumeric[FND_DATA_BUFF_LEN];
+   char   DataDot[FND_DATA_BUFF_LEN];
+   char   DataValid[FND_DATA_BUFF_LEN];
+} stFndWriteForm;
+
+
+int fndLibInit(void);
+int fndDisp(int num, int dotflag);
+void fndLibExit(void);
+
+#endif
