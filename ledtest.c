@@ -26,19 +26,13 @@ int main(int argc, char **argv)
         return -1;
     }
 
-    for (int i = 0; i < 8; i++)
-    {
-        int on = (data >> i) & 0x01;
-        ledOnOff(i, on);            
-        printf("LED %d: %s\n", i + 1, on ? "ON" : "OFF");
-    }
-
+    int led = (data >> 0) & 0x01;
+    
+    ledOnOff(0, led); printf("LED :s\n", led ? "on" : "off");
+    
     usleep(1000000);
-    printf("Turning all LEDs OFF...\n");
-    for (int i = 0; i < 8; i++)
-    {
-        ledOnOff(i, 0);
-    }
+
+    ledOnOff(0, 0);
 
     ledLibExit();
 

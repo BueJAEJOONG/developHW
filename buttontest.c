@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[])
 {
-	ledLibInit(); 
+
 
 	BUTTON_MSG_T B; 
 

@@ -1,156 +1,100 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include "Colorled.h"
+#include "colorled.h"
 
-#define COLOR_LED_DEV_R_ "/sys/class/pwm/pwmchip0/"
-#define COLOR_LED_DEV_G_ "/sys/class/pwm/pwmchip1/"
-#define COLOR_LED_DEV_R_ "/sys/class/pwm/pwmchip2/"
+#define PWM_BASE_SYS_PATH   "/sys/class/pwm/pwmchip"
+#define PWM_FREQUENCY       100000
+#define MAX_DUTY_CYCLE      100000
 
-#define PWM_EXPORT "export"
-#define PWM_UNEXPORT "unexport"
-#define PWM_DUTY "pwm0/duty_cycle"
-#define PWM_PERIOD "pwm0/period"
-#define PWM_ENABLE "pwm0/enable"
-
-#define PWM_COLOR_R 0
-#define PWM_COLOR_G 1
-#define PWN_COLOR_B 2
-
-#define PWM_PERIOD_NS 1000000 //ns.=1ms=1khz
-
-int pwmActiveALL(void){
-
-	int fd = 0;
-	fd = open ( COLOR_LED_DEV_R_ PWM_EXPORT, O_WRONLY);
-	write(fd, &"0",1);
-	close(fd);
-
-	fd = open ( COLOR_LED_DEB_G_ PWM_EXPORT, O_WRONLY);
-	write(fd, &"0",1);
-	close(fd);
-
-	fd = open ( COLOR_LED_DEV_B_ PWM_EXPORT, O_WRONLY);
-    write(fd,&"0",1);
-    close(fd);
-
-    return 1;
-}
-
-int pwmInactiveAll(void){
-
-    int fd = 0;
-    fd = open ( COLOR_LED_DEV_R_ PWM_UNEXPORT, O_WRONLY);
-    write(fd,&"0",1);
-    close(fd);
-
-    fd = open ( COLOR_LED_DEV_G_ PWM_UNEXPORT, O_WRONLY);
-    write(fd,&"0",1);
-    close(fd);
-
-    fd = open ( COLOR_LED_DEV_B_ PWM_UNEXPORT, O_WRONLY);
-    write(fd,&"0",1);
-    close(fd);
-
-    return 1;
-}
-
-int pwmSetDuty(int dutyCycle, int pwmIndex){
-
-    int fd = 0;
-
-    switch (pwmIndex){
-        case 0:
-            fd = open ( COLOR_LED_DEV_R_ PWM_DUTY, O_WRONLY);
-            break;
-        case 1:
-            fd = open ( COLOR_LED_DEV_G_ PWM_DUTY, O_WRONLY);
-            break;
-        case 2:
-        default:
-            fd = open ( COLOR_LED_DEV_B_ PWM_DUTY, O_WRONLY);
-        break;
+static int sysfs_write(const char *path, const char *value)
+{
+    int fd = open(path, O_WRONLY);
+    if (fd < 0) {
+        
+        return -1;
     }
-
-    dprintf(fd, "%d", dutyCycle);
+    write(fd, value, strlen(value));
     close(fd);
-
-    return 1;
+    return 0;
 }
 
-int pwmSetPeriod(int Period, int pwmIndex){
-
-    int fd = 0;
-    switch (pwmIndex){
-        case 2:
-            fd = open ( COLOR_LED_DEV_R_ PWM_PERIOD, O_WRONLY);
-            break;
-        case 1:
-            fd = open ( COLOR_LED_DEV_G_ PWM_PERIOD, O_WRONLY);
-            break;
-        case 0:
-        default:
-            fd = open ( COLOR_LED_DEV_B_ PWM_PERIOD, O_WRONLY);
-            break;
-    }
-
-    dprintf(fd, "%d", Period);
-    close(fd);
-
-    return 1;
+static void pwm_export(int pwm_index)
+{
+    char path[128];
+    sprintf(path, "%s%d/export", PWM_BASE_SYS_PATH, pwm_index);
+    sysfs_write(path, "0");
 }
 
-int pwmSetPercent(int percent, int ledColor){
+static void pwm_unexport(int pwm_index)
+{
+    char path[128];
+    sprintf(path, "%s%d/unexport", PWM_BASE_SYS_PATH, pwm_index);
+    sysfs_write(path, "0");
+}
 
-    if ((percent <0) || (percent > 100){
-        printf ("Wrong percent: %d\r\n",percent);
+static void pwm_set_value(int pwm_index, const char* property, int value)
+{
+    char path[128];
+    char buffer[20];
+    sprintf(path, "%s%d/pwm0/%s", PWM_BASE_SYS_PATH, pwm_index, property);
+    sprintf(buffer, "%d", value);
+    sysfs_write(path, buffer);
+}
 
-        return 0;
-    }
+static void pwm_set_enable(int pwm_index, int enable)
+{
+    char path[128];
+    sprintf(path, "%s%d/pwm0/enable", PWM_BASE_SYS_PATH, pwm_index);
+    sysfs_write(path, enable ? "1" : "0");
+}
 
-    int duty = (100- percent) * PWM_PERIOD_NS / 100;
+int colorLedLibInit(void)
+{
+    pwm_export(0);
+    pwm_export(1);
+    pwm_export(2);
+    usleep(100000); // 0.1초
 
-    pwmSetDuty(duty, ledColor);
+    pwm_set_value(0, "period", PWM_FREQUENCY);
+    pwm_set_value(1, "period", PWM_FREQUENCY);
+    pwm_set_value(2, "period", PWM_FREQUENCY);
+
+    colorLedSet(0, 0, 0);
+
+    pwm_set_enable(0, 1);
+    pwm_set_enable(1, 1);
+    pwm_set_enable(2, 1);
 
     return 0;
 }
 
-int pwmStartAll(void){
+void colorLedLibExit(void)
+{
+    pwm_set_enable(0, 0);
+    pwm_set_enable(1, 0);
+    pwm_set_enable(2, 0);
 
-    int fd = 0;
-
-    fd = open ( COLOR_LED_DEV_R_ PWM_ENABLE, O_WRONLY);
-    write(fd,&"1",1);
-    close(fd);
-
-    fd = open ( COLOR_LED_DEV_G_ PWM_ENABLE, O_WRONLY);
-    write(fd,&"1",1);
-    close(fd);
-
-    fd = open ( COLOR_LED_DEV_B_ PWM_ENABLE, O_WRONLY);
-    write(fd,&"1",1);
-    close(fd);
-
-    return 1;
+    pwm_unexport(0);
+    pwm_unexport(1);
+    pwm_unexport(2);
 }
 
-int pwmLedInit(void){
+int colorLedSet(int red, int green, int blue)
+{
+    if (red < 0) red = 0;
+    if (green < 0) green = 0;
+    if (blue < 0) blue = 0;
 
-    pwmActiveAll();
-    pwmSetDuty(0, 0); //R<-0
-    pwmSetDuty(0, 1); //G<-0
-    pwmSetDuty(0, 2); //B<-0
+    int duty_red   = (red > 100) ? MAX_DUTY_CYCLE : (red * MAX_DUTY_CYCLE) / 100;
+    int duty_green = (green > 100) ? MAX_DUTY_CYCLE : (green * MAX_DUTY_CYCLE) / 100;
+    int duty_blue  = (blue > 100) ? MAX_DUTY_CYCLE : (blue * MAX_DUTY_CYCLE) / 100;
 
-    pwmSetPeriod(PWM_PERIOD_NS, 0);
-    pwmSetPeriod(PWM_PERIOD_NS, 1);
-    pwmSetPeriod(PWM_PERIOD_NS, 2);
-
-    pwmStartAll();
-    pwmSetPercent(0,0);
-    pwmSetPercent(0,1);
-    pwmSetPercent(0,2);
+    pwm_set_value(0, "duty_cycle", duty_red);
+    pwm_set_value(1, "duty_cycle", duty_green);
+    pwm_set_value(2, "duty_cycle", duty_blue);
 
     return 0;
 }
