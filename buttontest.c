@@ -8,8 +8,6 @@
 #include <sys/msg.h>
 #include <pthread.h>
 #include "button.h"
-#include "led.h"
-
 
 int main(int argc, char *argv[])
 {

@@ -1,44 +1,48 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <ctype.h>
-#include <sys/ipc.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include "led.h"
-#define LED_DRIVER_NAME "/dev/periled"
-#define MAX_LED_NUM 8
 
-
-void doHelp(void)
+int main(int argc, char **argv)
 {
-printf(" ledtest <hex byte> :data bit0 operation 1=>on 0=>off\n");
-printf(" ledtest 0x05 ;4th and 1th led on\n");
-printf(" ledtest 0xff ;all led on\n");
-printf(" ledtest 0x00 ;all led off\n");
+    unsigned int data;
+
+    printf("LED Test Application\n");
+
+    if (argc < 2)
+    {
+        printf("Usage: %s <hex byte>\n", argv[0]);
+        printf("Example:\n");
+        printf("  %s 0x05 ; LED 1 and 4 ON\n", argv[0]);
+        printf("  %s 0xff ; All LEDs ON\n", argv[0]);
+        printf("  %s 0x00 ; All LEDs OFF\n", argv[0]);
+        return -1;
+    }
+
+    data = strtol(argv[1], NULL, 16);
+    if (ledLibInit() < 0)
+    {
+        printf("ledLibInit() failed.\n");
+        return -1;
+    }
+
+    for (int i = 0; i < 8; i++)
+    {
+        int on = (data >> i) & 0x01;
+        ledOnOff(i, on);            
+        printf("LED %d: %s\n", i + 1, on ? "ON" : "OFF");
+    }
+
+    usleep(1000000);
+    printf("Turning all LEDs OFF...\n");
+    for (int i = 0; i < 8; i++)
+    {
+        ledOnOff(i, 0);
+    }
+
+    ledLibExit();
+
+    return 0;
 }
 
-int main(int argc , char **argv){
-	unsigned int data = 0;
-	int fd, isWrite;
-	
-	if (argc < 2 ){
-		perror(" Args number is less than 2\n");
-		doHelp();
-		return 1;
-	}
-	data = strtol(argv[1],NULL,16);
-	
-	fd = open(LED_DRIVER_NAME,O_RDWR);
-	if (fd<0)
-	{
-		perror("driver(//dev//cnled) open error).\n");
-		return 1;
-	}
-	write(fd,&data,4);
-	close(fd);
-	return 0;
-}
+
