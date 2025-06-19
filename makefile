@@ -1,14 +1,35 @@
+OBJS = led.o button.o buzzer.o
+TARGET = ledtest buttontest buzzertest
 
-obj-m := driver_sample.o
-KDIR := /home/joongsrobot/develop/linux_kernel
-PWD := $(shell pwd)
+CROSS_COMPILE   := arm-linux-gnueabi-
+CC              := $(CROSS_COMPILE)gcc
+AR              := $(CROSS_COMPILE)ar
 
-export ARCH=arm
-export CROSS_COMPILE=arm-linux-gnueabi-
+CFLAGS = -I.
 
-all:
-	$(MAKE) -C $(KDIR) SUBDIRS=$(PWD) modules
+LDFLAGS = -L. -lMyPeri -lpthread
+
+LIB_NAME = libMyPeri.a
+
+all: $(TARGET)
+
+
+ledtest: ledtest.o $(LIB_NAME)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
+buttontest: buttontest.o $(LIB_NAME)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
+buzzertest: buzzertest.o $(LIB_NAME)
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+
+$(LIB_NAME): $(OBJS)
+	$(AR) rcs $@ $(OBJS)
+
+%.o: %.c
+	$(CC) $(CFLAGS) -c -o $@ $<
 
 clean:
-	-rm *.o *.mod.c .*.cmd modules.order Module.symvers
+	rm -f $(TARGET) $(OBJS) $(LIB_NAME) *.o
 
+.PHONY: all clean

@@ -1,93 +1,83 @@
-#include <stido.h>
-#include <stdlib.h>
-#include <string.h>
-#include <linux/input.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <sys/msg.h>
-#include <pthread.h>
+#include "button.h"
 
-#define INPUT_DEVIE_LIST "/dev/input/event"
-#define PROBE_FILE "/proc/bus/input/devices"
-#define HAVE_TO_FIND_1 "N: Name=\ "ecube-button\"\n"
-#define HAVE_TO_FIND_2 "H: Handlers=kbd event"
+static int fd = 0;
+static int msgID = 0;
+char inputDevPath[200] = {0,};
+static pthread_t buttonTh_id;
 
-BUTTON_MSG_T A;
-int msgID, fd;
-char buttonPAth[200] = {0,};
-pthread_t buttonTh_id;
 
-int probeButtonPath(char *newPath){
-	int returnValue = 0;
-	int numver = 0;
-	FILE *fp = fopen(PROBE_FILE, "rt");
-	while(!feof(fp)) {
-		char tmpStr[200];
-		fgets(tmpStr,200,fp);
-
-	if (strcmp(tmpStr,HAVE_TO_FIND_1) == 0_{
-			returnValue = 1;
-			}
-
-	if ((returnValue == 1) && (strncasecmp(tmpStr, HAVE_TO_FIND_2, strlen(HAVE_TO_FIND_2))
-	{
-	numver = tmpStr[strlen(tmpStr)-3] -'0';
-	break;
-	}
-	}
-	fclose(fp);
-	if (returnValue == 1){
-		sprintf (newPath, "%s%d", INPUT_DEVICE_LIST, number);
-		}
-		return returnValue;
-	}
-
-	void buttonThFunc(void)
-	{
-	int readSize, inputIndex;
-	struct input_event stEvent;
-	while(1)
-	{
-	readSize = read(fd, &stEvent , sizeof(stEvent));
-	if (readSize != sizeof(stEvent))
-	{
-	continue;
-	}
-
-	A.keyInput = stEvent.code;
-	A.type = stEvent.type;
-	A.pressed = stEvent.value;
-
-	msgsnd(msgID.&A, sizeof(unsigned short)*2+sizeof(int) , 0);
-	}
-}
-int buttonInit(void){
-
-	if(probeButtonPath(buttonPath) == 0)
-		return 0;
-	fd=open (buttonPath, O_RDONLY);
-
-	return 1;
+int buttonInit(void)
+{
+    if (probeButtonPath(inputDevPath) == 0)
+    {
+        printf ("ERROR! File Not Found!\r\n");
+        printf ("Did you insmod?\r\n");
+        return 0;
+    }
+    printf("inputDevPath:%s\r\n", inputDevPath);
+    fd = open(inputDevPath, O_RDONLY);
+    msgID = msgget(MESSAGE_ID, IPC_CREAT|0666);
+    pthread_create(&buttonTh_id, NULL, buttonThFunc, NULL);
+    return msgID;
 }
 
-int buttonStart(void){
-	msgID = msgget (MESSAGE_ID, IPC_CREAT|0666);
-	if (msgID == -1){
-		printf("Cannot get msgQueueID, Return!\r\n");
-		return -1;
-	}
-	A.messageNum =1;
-	pthread_create(&buttonTh_id, NULL, &buttonThFunc, NULL);
+int probeButtonPath(char *newPath)
+{
+    int returnValue = 0;
+    int number = 0;
+    FILE *fp = fopen(PROBE_FILE,"rt");
+    while(!feof(fp)) 
+    {
+        char tmpStr[200];
+        fgets(tmpStr,200,fp);
+        if (strcmp(tmpStr,HAVE_TO_FIND_1) == 0)
+        {
+            printf("YES! I found!: %s\r\n", tmpStr);
+            returnValue = 1;
+        }
+        if ((returnValue == 1) && (strncasecmp(tmpStr, HAVE_TO_FIND_2, strlen(HAVE_TO_FIND_2)) == 0))
+        {
+            printf ("-->%s",tmpStr);
+            printf("\t%c\r\n",tmpStr[strlen(tmpStr)-3]);
+            number = tmpStr[strlen(tmpStr)-3] - '0'; 
+            break;
+        }
+    }
+    fclose(fp);
+    if (returnValue == 1)   sprintf (newPath,"%s%d",INPUT_DEVICE_LIST,number);
+    return returnValue;
+}
 
-	return 0;
+typedef struct
+{
+	long int messageNum;
+	int keyInput;
+	int pressed;
+	int type;
+} 
+
+
+void* buttonThFunc(void *arg)
+{
+    BUTTON_MSG_T messageTxData;
+    messageTxData.messageNum = 1;
+    struct input_event stEvent;
+    while (1)
+    {
+        read(fd, &stEvent, sizeof(stEvent));
+        if ((stEvent.type == EV_KEY) && (stEvent.value == 1))
+        {
+            messageTxData.keyInput = stEvent.code;
+            messageTxData.pressed = stEvent.value;
+            messageTxData.type = stEvent.type;
+	    msgsnd(msgID, &messageTxData, sizeof(BUTTON_MSG_T)-sizeof(long int), 0);
+        }
+    }
 }
 
 int buttonExit(void)
 {
-	pthread_jion(buttonTh_id, NULL);
-
-	close(fd);
-
-	return 1;
+    pthread_cancel(buttonTh_id);
+    close(fd);
 }
+
