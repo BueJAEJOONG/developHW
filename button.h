@@ -21,6 +21,7 @@ typedef struct
     long int messageNum;
     int keyInput;
     int pressed;
+    int type;
 } BUTTON_MSG_T;
 
 int buttonInit(void);

@@ -48,13 +48,7 @@ int probeButtonPath(char *newPath)
     return returnValue;
 }
 
-typedef struct
-{
-	long int messageNum;
-	int keyInput;
-	int pressed;
-	int type;
-} 
+ 
 
 
 void* buttonThFunc(void *arg)
