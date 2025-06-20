@@ -1,5 +1,5 @@
-#ifndef _COLOR_H_
-#define _COLOR_H_
+#ifndef _COLORLED_H_
+#define _COLORLED_H_
 
 int pwmActiveAll(void);
 int pwminactiveAll(void);

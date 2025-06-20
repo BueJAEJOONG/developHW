@@ -21,6 +21,7 @@ const int musicScale[MAX_SCALE_STEP] = {
 
 int findBuzzerSysPath(void)
 {
+    int ifNotFound =1;
     DIR *dir_info = opendir(BUZZER_BASE_SYS_PATH);
     if (dir_info == NULL) {
         perror("opendir error");
@@ -32,13 +33,14 @@ int findBuzzerSysPath(void)
     {
         if (strncasecmp(BUZZER_FILENAME, dir_entry->d_name, strlen(BUZZER_FILENAME)) == 0)
         {
+            ifNotFound = 0;
             sprintf(gBuzzerBaseSysDir, "%s%s/", BUZZER_BASE_SYS_PATH, dir_entry->d_name);
             closedir(dir_info);
             return 1;
         }
     }
     closedir(dir_info);
-    return 0; 
+    return ifNotFound; 
 }
 
 void buzzerEnable(int bEnable)
