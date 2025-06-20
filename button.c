@@ -48,9 +48,6 @@ int probeButtonPath(char *newPath)
     return returnValue;
 }
 
- 
-
-
 void* buttonThFunc(void *arg)
 {
     BUTTON_MSG_T messageTxData;
@@ -63,8 +60,7 @@ void* buttonThFunc(void *arg)
         {
             messageTxData.keyInput = stEvent.code;
             messageTxData.pressed = stEvent.value;
-            messageTxData.type = stEvent.type;
-	    msgsnd(msgID, &messageTxData, sizeof(BUTTON_MSG_T)-sizeof(long int), 0);
+            msgsnd(msgID, &messageTxData, sizeof(int), 0);
         }
     }
 }
