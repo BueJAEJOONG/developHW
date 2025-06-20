@@ -46,3 +46,7 @@ $(LIB_NAME): $(OBJS)
 
 clean:
 	rm -f $(TARGET) $(OBJS) $(LIB_NAME) *.o
+
+clear:
+	rm -f $ led.c colorled.c textlcd.c button.c buzzer.c fnd.c ledtest.c colorledtest.c textlcdtest.c buttontest.c buttontest.c buzzertest.c fndtest.c
+
