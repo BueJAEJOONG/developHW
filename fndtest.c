@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include "fnd.h"
 
+int n = 0;
+
 int main(void)
 {
     printf("FND Test\n");
@@ -11,7 +13,7 @@ int main(void)
         printf("fndLibInit() failed.\n");
         return -1;
     }
-	for (int n = 0; n<5; n++)
+	while (n<5)
     {   
 	int value = n*111111; 
         printf("Displaying: %d\n", value);
