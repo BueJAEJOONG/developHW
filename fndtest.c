@@ -1,32 +1,33 @@
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
+#include <unistd.h>      
+#include <sys/ipc.h>     
+#include <sys/msg.h>     
+#include <linux/input.h> 
+#include <sys/msg.h>
+#include <pthread.h>
+#include <fcntl.h>
 #include "fnd.h"
 
-int n = 0;
-
-int main(void)
+int main()
 {
-    printf("FND Test\n");
-
-    if (fndLibInit() < 0)
+    fndInit();
+    for(int i =0; i < 8 ; i++)
     {
-        printf("fndLibInit() failed.\n");
-        return -1;
-    }
-	while (n<5)
-    {   
-	int value = n*111111; 
-        printf("Displaying: %d\n", value);
-        fndDisp(value, 0); 
+        fndDisp(000001,1);
+        sleep(1);
+        fndDisp(000010,2);
+        sleep(1);
+        fndDisp(000100,4);
+        sleep(1);
+        fndDisp(001000,8);
+        sleep(1);
+        fndDisp(010000,16);
+        sleep(1);
+        fndDisp(100000,32);
         sleep(1);
     }
-    
-	fndDisp(0, 0b001010); //dot
-    printf("Displaying dots...\n");
-    sleep(1);
-
-
-    fndLibExit();
-    printf("FND Test Finished.\n");
+    fndExit();
     return 0;
+
 }
