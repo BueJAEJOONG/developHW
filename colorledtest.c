@@ -14,31 +14,31 @@ int main(void)
 
     printf("Red\n");
     colorLedSet(100, 0, 0);
-    sleep(2);
+    sleep(20);
 
     printf("Green\n");
     colorLedSet(0, 100, 0);
-    sleep(2);
+    sleep(20);
 
     printf("Blue\n");
     colorLedSet(0, 0, 100);
-    sleep(2);
+    sleep(20);
     
     printf("Yellow\n");
     colorLedSet(100, 100, 0);
-    sleep(2);
+    sleep(20);
 
     printf("CYAN\n");
     colorLedSet(0, 100, 100);
-    sleep(2);
+    sleep(20);
 
     printf("MAGENTA\n");
     colorLedSet(100, 0, 100);
-    sleep(2);
+    sleep(20);
 
     printf("White\n");
     colorLedSet(100, 100, 100);
-    sleep(2);
+    sleep(20);
 
     colorLedLibExit();
     printf("Color LED Test Finished.\n");
