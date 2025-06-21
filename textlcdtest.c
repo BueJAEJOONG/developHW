@@ -4,7 +4,7 @@
 #include <linux/input.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
+#include <sys/ioctl.
 #include <sys/msg.h>
 #include <pthread.h>
 #include "textlcd.h"
@@ -31,12 +31,13 @@ int main(int argc, char **argv)
     switch(linenum)
     {
         case 1:
-                lcdtextwrite(argv[2],"",linenum);
-                break;
+            lcdtextwrite(argv[2],"",linenum);
+            break;
         case 2:
-                lcdtextwrite("",argv[2],linenum);
-                break;
+            lcdtextwrite("",argv[2],linenum);
+            break;
 
     }
     return 0;
 }
+
