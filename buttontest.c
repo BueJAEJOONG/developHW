@@ -1,39 +1,72 @@
 #include <stdio.h>
-#include <sys/msg.h>
+#include <stdlib.h>
+#include <string.h>
+#include <linux/input.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <sys/msg.h>
+#include <pthread.h>
 #include "button.h"
 
-#define KEY_BACK 158 
-
-int main(void)
+int main(int argc, char *argv[])
 {
-    printf("Button Test Application\n");
-    
-    int msgID;
-    BUTTON_MSG_T receivedMsg;
-    msgID = buttonInit();
+    BUTTON_MSG_T B;
+
+    int msgID = buttonInit();
     if (msgID < 0)
     {
-        printf("buttonInit() failed.\n");
+        printf("buttonInit() failed. Cannot get msgQueueID, Return!\r\n");
         return -1;
     }
 
-    printf("Waiting for button press... (Press BACK button to exit)\n");
+    printf("Waiting for button press events...\n");
 
     while(1)
     {
-        msgrcv(msgID, &receivedMsg, sizeof(receivedMsg) - sizeof(long int), 0, 0);
-        
-        printf("Button Pressed: Key Code %d\n", receivedMsg.keyInput);
+        int returnValue = 0;
+        returnValue = msgrcv(msgID, &B, sizeof(BUTTON_MSG_T) - sizeof(long int), 0, 0);
 
-        if (receivedMsg.keyInput == KEY_BACK)
-        {
-            printf("BACK button pressed. Exiting.\n");
+        if (returnValue < 0) {
+            perror("msgrcv failed");
             break;
         }
-    }
-    
-    buttonExit();
 
+        switch(B.keyInput)
+        {
+            case KEY_HOME:
+                printf("HOME ");
+                break;
+            case KEY_BACK:
+                printf("BACK ");
+                break;
+            case KEY_SEARCH:
+                printf("SEARCH ");
+                break;
+            case KEY_MENU:
+                printf("MENU ");
+                break;
+            case KEY_VOLUMEUP:
+                printf("VOLUMEUP ");
+                break;
+            case KEY_VOLUMEDOWN:
+                printf("VOLUMEDOWN ");
+                break;
+            default:
+                printf("UNKNOWN_KEY (%d) ", B.keyInput);
+                break;
+        }
+
+
+        if ( B.pressed ) {
+            printf("pressed\n");
+        } else {
+            printf("released\n");
+        }
+    }
+
+    buttonExit();
     return 0;
 }
+
+

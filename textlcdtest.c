@@ -4,7 +4,7 @@
 #include <linux/input.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <sys/ioctl.
+#include <sys/ioctl.h>
 #include <sys/msg.h>
 #include <pthread.h>
 #include "textlcd.h"
